@@ -1,0 +1,4 @@
+export const VALID_PROMO_DISCOUNTS = {
+  'I<3AMAYSIM': 10,
+  'TESTING123': 20
+};
