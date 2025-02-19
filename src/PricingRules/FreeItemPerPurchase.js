@@ -1,23 +1,38 @@
-import CartItem from "../CartItem.js";
+import PricingRule from "./PricingRule.js";
+import ProductCatalogue from "../ProductCatalogue.js";
+class FreeItemPerPurchase extends PricingRule {
 
-class FreeItemPerPurchase {
-  constructor({ productCode, freeProduct, freeProductCount }) {
+  constructor({
+    priorityLevel = 0,
+    productCode,
+    freeProductCode,
+    freeProductCount
+  }) {
+    super(priorityLevel);
     this.productCode = productCode;
-    this.freeProduct = freeProduct;
+    this.freeProductCode = freeProductCode;
     this.freeProductCount = freeProductCount;
+  }
+
+  isApplicable(cart) {
+    const productCount = cart.productCount[this.productCode] || 0;
+    return productCount > 0;
   }
 
   applyRule(cart) {
     const productCount = cart.productCount[this.productCode] || 0;
+
     if (productCount === 0) {
-      return [0, []];
+      return;
     }
+
     const freeItems = productCount * this.freeProductCount;
-    const newItems = [];
     for (let i = 0; i < freeItems; i++) {
-      newItems.push(new CartItem(this.freeProduct));
+      // set price to zero since its free
+      const cartItem = ProductCatalogue
+        .createCartItemFromProductCode(this.freeProductCode, { price: 0 });
+      cart.addFreeItem(cartItem);
     }
-    return [0, newItems];
   }
 }
 

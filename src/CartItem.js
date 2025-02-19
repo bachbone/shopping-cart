@@ -1,7 +1,7 @@
 class CartItem {
   constructor(product) {
     this.product = product;
-    this.isFreeItem = false;
+    this.price = product.price;
   }
 }
 

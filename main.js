@@ -1,36 +1,41 @@
+import ProductCatalogue from './src/ProductCatalogue.js';
 import ShoppingCart from './src/ShoppingCart.js';
-import Product from './src/Product.js';
-import CartItem from './src/CartItem.js';
 
-import PromoCodeDiscount from './src/PricingRules/PromoCodeDiscount.js';
+import PromoCodePercentageDiscount from './src/PricingRules/PromoCodePercentageDiscount.js';
+import PromoCodeFixedAmountDiscount from './src/PricingRules/PromoCodeFixedAmountDiscount.js';
 import BuyXForYFreeDiscount from './src/PricingRules/BuyXGetYFreeDiscount.js';
 import BulkDiscount from './src/PricingRules/BulkDiscount.js';
 import FreeItemPerPurchase from './src/PricingRules/FreeItemPerPurchase.js';
 
 import { VALID_PROMO_DISCOUNTS } from './src/validPromoCodes.js';
 
-const UnliSmall = new Product({ code: 'ult_small', name: 'Unlimited 1GB', price: 24.90 });
-const UnliMedium = new Product({ code: 'ult_medium', name: 'Unlimited 2GB', price: 29.90 });
-const UnliLarge = new Product({ code: 'ult_large', name: 'Unlimited 5GB', price: 44.90 });
-const DataPack1GB = new Product({ code: '1gb', name: '1GB Data-pack', price: 9.90 });
+const UnliLarge = ProductCatalogue.createCartItemFromProductCode('ult_large');
 
-const pricingRules = [
-  // A 3 for 2 deal on UnliSmall
-  // new BuyXForYFreeDiscount({ productCode: 'ult_small', buyCount: 3, freeCount: 1 }),
-  // Bulk Discount on UnliLarge
-  // new BulkDiscount({ productCode: 'ult_large', thresholdCount: 3, discountedPrice: 39.90 }),
-  // apply I<3AMAYSIM promo code discount
-  new PromoCodeDiscount('I<3AMAYSIM', VALID_PROMO_DISCOUNTS['I<3AMAYSIM']),
-  // new PromoCodeDiscount('TESTING123', VALID_PROMO_DISCOUNTS['TESTING123']),
-  // new FreeItemPerPurchase({ productCode: 'ult_medium', freeProduct: DataPack1GB, freeProductCount: 1 })
-];
+const fixedAmountDiscount = new PromoCodeFixedAmountDiscount({
+  priorityLevel: 10,
+  promoCode: 'FIXEDAMOUNT20',
+  amount: VALID_PROMO_DISCOUNTS['FIXEDAMOUNT20'],
+});
 
-const cart = ShoppingCart.new(pricingRules);
+const percentageDiscount = new PromoCodePercentageDiscount({
+  priorityLevel: 5,
+  promoCode: 'I<3AMAYSIM',
+  percent: VALID_PROMO_DISCOUNTS['I<3AMAYSIM'],
+});
 
-cart.add(new CartItem(UnliSmall), 'I<3AMAYSIM');
+const cart = ShoppingCart.new([fixedAmountDiscount, percentageDiscount]);
 
-console.log(cart.items);
-console.log(cart.pricingRules);
-console.log("Subtotal:", cart.subtotal);
-console.log("Total Discount:", cart.totalDiscount);
-console.log("Total:", cart.total);
+cart.add(UnliLarge);
+cart.add(UnliLarge);
+cart.add(UnliLarge, 'FIXEDAMOUNT20');
+cart.add(UnliLarge, 'I<3AMAYSIM');
+
+// Calculate the expected total based on this order
+const subtotal = 44.90 * 4;
+console.log(subtotal)
+console.log(fixedAmountDiscount.amount)
+console.log(percentageDiscount.percent)
+console.log(subtotal - fixedAmountDiscount.amount)
+const expectedTotal = (subtotal - fixedAmountDiscount.amount) * (1 - percentageDiscount.percent / 100);
+
+console.log(cart.total, expectedTotal);

@@ -1,9 +1,16 @@
-class BulkDiscount {
-  constructor({ productCode, thresholdCount, discountedPrice }) {
+import PricingRule from "./PricingRule.js";
+import ProductCatalogue from "../ProductCatalogue.js";
+class BulkDiscount extends PricingRule {
+  constructor({
+    priorityLevel = 0,
+    productCode,
+    thresholdCount,
+    discountedPrice
+  }) {
+    super(priorityLevel);
     this.productCode = productCode;
     this.thresholdCount = thresholdCount;
     this.discountedPrice = discountedPrice;
-
   }
 
   isApplicable(cart) {
@@ -12,14 +19,10 @@ class BulkDiscount {
   }
 
   applyRule(cart) {
+    const itemPrice = ProductCatalogue.getProductByCode(this.productCode).price;
     const productCount = cart.productCount[this.productCode] || 0;
-    if (productCount <= this.thresholdCount) {
-      return [0, []];
-    }
-    const itemPrice = cart.getCartItemByProductCode(this.productCode).product.price;
     const discount = (itemPrice - this.discountedPrice) * productCount;
-    // return resulting discount and new cart items
-    return [discount, []];
+    cart.discounts.push({ type: 'fixed', value: discount });
   }
 }
 
